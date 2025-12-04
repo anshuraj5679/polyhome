@@ -49,13 +49,14 @@ export default function Home() {
 
                 if (contract.address) {
                     const count = await contract.getListingCount();
+                    const countNum = count.toNumber ? count.toNumber() : Number(count);
                     const items = [];
-                    for (let i = 1; i <= count; i++) {
+                    for (let i = 1; i <= countNum; i++) {
                         const item = await contract.getListing(i);
                         if (item.active) {
                             items.push({
                                 id: item.id.toString(),
-                                price_per_night: ethers.utils.formatEther(item.price), // Convert Wei to Ether string
+                                price_per_night: ethers.utils.formatEther(item.pricePerNight), // Use correct field name
                                 cid: item.cid,
                                 owner: item.owner.toLowerCase(),
                                 category: 'Amazing pools' // Default for on-chain only items

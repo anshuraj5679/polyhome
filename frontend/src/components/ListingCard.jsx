@@ -8,9 +8,11 @@ import { supabase } from '../lib/supabaseClient';
 export default function ListingCard({ listing, account, onDelete }) {
     const [deleting, setDeleting] = useState(false);
 
-    // Mock image if no CID or invalid
-    const imageUrl = listing.cid && listing.cid.startsWith('http')
-        ? listing.cid
+    // Handle different image sources: IPFS URL, Data URI, or fallback
+    const imageUrl = listing.cid
+        ? (listing.cid.startsWith('http') || listing.cid.startsWith('data:'))
+            ? listing.cid
+            : `https://gateway.pinata.cloud/ipfs/${listing.cid}`
         : `https://picsum.photos/seed/${listing.id}/400/300`;
 
     const isOwner = account && listing.owner && account.toLowerCase() === listing.owner.toLowerCase();
