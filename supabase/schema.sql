@@ -9,7 +9,7 @@ CREATE TABLE profiles (
 
 CREATE TABLE listings (
   id bigint PRIMARY KEY,
-  owner uuid REFERENCES profiles(id),
+  owner uuid REFERENCES profiles(id) NULL, -- Made nullable for easier testing
   onchain_listing_id bigint,
   title text,
   description text,

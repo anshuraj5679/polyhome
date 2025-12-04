@@ -144,28 +144,35 @@ export default function CreateListing() {
             // For this demo, we'll proceed even if we missed the ID, but in prod we'd be stricter.
             const dbId = onchainListingID || Date.now().toString();
 
-            const { error } = await supabase.from('listings').insert([
-                {
-                    id: dbId,
-                    title: form.title,
-                    price_per_night: form.price,
-                    cid: cid, // Store the REAL image (Data URI) in the database
-                    owner: (await signer.getAddress()).toLowerCase(), // Optional: if you want to store owner address
-                    category: form.category,
-                    description: form.description, // Save the AI description
-                    active: true,
-                    guests: form.guests,
-                    bedrooms: form.bedrooms,
-                    beds: form.beds,
-                    baths: form.baths,
-                    rating: form.rating,
-                    cleaning_fee: form.cleaning_fee,
-                    service_fee: form.service_fee
-                }
-            ]);
+            try {
+                const walletAddress = await signer.getAddress();
+                const { error } = await supabase.from('listings').insert([
+                    {
+                        id: dbId,
+                        onchain_listing_id: onchainListingID,
+                        title: form.title,
+                        price_per_night: parseFloat(form.price),
+                        cid: cid,
+                        owner: null, // Set to null since we don't have profile system yet
+                        category: form.category,
+                        description: form.description,
+                        active: true,
+                        guests: parseInt(form.guests),
+                        bedrooms: parseInt(form.bedrooms),
+                        beds: parseInt(form.beds),
+                        baths: parseInt(form.baths),
+                        rating: parseFloat(form.rating),
+                        cleaning_fee: parseFloat(form.cleaning_fee),
+                        service_fee: parseFloat(form.service_fee)
+                    }
+                ]);
 
-            if (error) {
-                console.error("Supabase error:", error);
+                if (error) {
+                    console.error("Supabase error:", error);
+                    throw error;
+                }
+            } catch (dbError) {
+                console.error("Database sync failed:", dbError);
                 // We don't block success here because the blockchain part worked
                 alert("Listing created on-chain, but database sync failed. It will appear eventually.");
             }
