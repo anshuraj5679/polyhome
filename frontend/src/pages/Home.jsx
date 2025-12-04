@@ -17,6 +17,11 @@ export default function Home() {
         checkAccount();
     }, []);
 
+    // Reload listings when category changes to ensure fresh data
+    useEffect(() => {
+        loadListings();
+    }, [selectedCategory]);
+
     const checkAccount = async () => {
         if (window.ethereum) {
             const provider = getProvider();
@@ -39,6 +44,8 @@ export default function Home() {
             const { data, error } = await supabase.from('listings').select('*');
 
             if (!error && data && data.length > 0) {
+                console.log("Loaded listings from Supabase:", data);
+                console.log("Categories:", data.map(l => ({ id: l.id, category: l.category })));
                 setListings(data);
             } else {
                 // 2. Fallback: Query Blockchain directly if Supabase is empty (legacy/real mode without DB sync)
@@ -78,11 +85,13 @@ export default function Home() {
     };
 
     // Filter listings by category
-    const filteredListings = listings.filter(l =>
-        // If listing has no category (legacy), show it in 'Amazing pools' or 'All'? 
-        // Let's assume 'Amazing pools' as default or show all if category matches.
-        l.category === selectedCategory || (!l.category && selectedCategory === 'Amazing pools')
-    );
+    const filteredListings = listings.filter(l => {
+        // Match exact category
+        if (l.category === selectedCategory) return true;
+        // If listing has no category, show it in 'Amazing pools' as default
+        if (!l.category && selectedCategory === 'Amazing pools') return true;
+        return false;
+    });
 
     const categories = [
         { name: 'Amazing pools', icon: <Waves size={24} /> },
